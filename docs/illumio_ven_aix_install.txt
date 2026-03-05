@@ -1,0 +1,128 @@
+
+==================================================
+[1] 檢查是否已安裝 IPFilter
+==================================================
+
+================Check ipfilter is install or not================
+/usr/lib/methods/cfg_ipf -l
+（列出 32 位元 IPFilter 的設定/狀態；若未安裝或未定義，可能無輸出或報錯。-l 通常表示 list 或查詢狀態）
+
+/lib/methods/cfg_ipf64 -l
+（列出 64 位元 IPFilter 的設定/狀態；同上）
+
+lslpp -l | grep -i ipfl
+（檢查 AIX 已安裝的 LPP 套件清單中是否有 ipfl（IPFilter 套件，通常名稱為 ipfl.rte）；若出現供應商與版本可用於判斷是否為 Illumio 版本或系統原生版本）
+
+emgr -l
+（列出系統已套用的 Emergency Fix（臨時修補）清單；用於檢查是否已有相關 APAR/efix）
+
+emgr -l | grep IV89793
+（查找特定 efix/APAR：IV89793；此為 IPFilter 相關的已知修補識別碼之一，用於辨識是否安裝過該修補）
+
+小結：
+- 若 lslpp 顯示 ipfl.rte 已安裝，且 emgr 顯示有特定 efix，之後移除或升級時需謹慎，避免移除 Illumio 提供之版本。
+- 也可透過 lslpp -Lc ipfl.rte 檢查詳細提供者與版本欄位（便於區分是否為 Illumio 打包版或 OS 內建版）。
+
+
+==================================================
+[2] 移除既有 IPFilter（非 Illumio 版本）
+==================================================
+
+================Remove ipfilter(not illumio version)================
+/lib/methods/cfg_ipf –u
+（卸載/取消定義 32 位元 IPFilter；注意「–u」請改為標準 ASCII「-u」。若此步驟報錯，可先確認是否存在該方法檔與對應裝置狀態）
+
+/lib/methods/cfg_ipf64 –u
+（卸載/取消定義 64 位元 IPFilter；同上，請使用「-u」）
+
+installp -u ipfl.rte
+（使用 AIX 套件管理移除 ipfl.rte；會移除 IPFilter 軟體本體。請先確認此為非 Illumio 打包版本，以免影響後續 VEN 功能）
+
+emgr -r -L  IV89793s5a.161102.epkg.Z
+（移除指定的 efix 套件檔 IV89793s5a.161102.epkg.Z；參數 -r 表示移除，-L 指定 efix 檔名。此檔案需位於目前目錄或提供完整路徑）
+
+補充與風險說明：
+- 請務必先確認要移除的確為「非 Illumio」版本的 IPFilter（例如由 OS 提供）。若已是 Illumio 更新版，無須先移除。
+- 若系統策略或其他應用依賴現有 IPFilter 規則，移除前建議備份規則與設定（例如備份 /etc/ipf.conf、/etc/ipf/ipf.conf，實際路徑依環境而異）。
+- 發現「–u」為非標準減號時要手動修正為「-u」，否則命令不會執行。
+
+
+==================================================
+[3] 安裝更新後的 IPFilter（假設仍在 /tmp 目錄操作）
+==================================================
+
+================Install the updated IPFilter (assumes still working in /tmp directory):================
+inutoc . && installp -acYd . ipfl
+（inutoc . 會在當前目錄建立/更新 .toc 目錄索引，供 installp 使用；installp 參數說明：
+ -a Apply 安裝
+ -c Clean 安裝後清理暫存
+ -Y 自動接受授權
+ -d . 指定安裝來源為當前目錄
+ 套件名 ipfl 會匹配該目錄內的對應映像檔（例如 ipfl.rte）。請確認映像檔存在於當前目錄）
+
+將 Illumio PCE 伺服器的受信任根 CA 憑證「完整鏈」（包含中繼憑證與根憑證）放置於下方目錄，且檔名必須精確為 ca-bundle.crt。完整鏈確保 TLS 驗證時能連到最上層的 Root CA）
+若該檔已存在或為同名的符號連結，請將新憑證內容以「追加」方式合併到檔案末端，而非覆蓋。可使用 cat new.crt >> /var/ssl/certs/ca-bundle.crt 追加）
+
+/var/ssl/certs/ca-bundle.crt
+（上述檔案的目標路徑。若目錄不存在，請先建立；請確保檔內容為 PEM 格式，且包含從伺服器憑證上游的中繼到根的完整憑證鏈）
+
+Make cert world-readable:
+chmod 644 /var/ssl/certs/ca-bundle.crt
+（設定檔案權限為所有人可讀，避免 VEN 啟動時因權限不足無法讀取 CA 憑證）
+
+補充驗證：
+- 可用 openssl 測試信任鏈是否完整：
+  openssl s_client -connect <pce_fqdn>:8443 -CAfile /var/ssl/certs/ca-bundle.crt -servername <pce_fqdn>
+  若驗證成功，Verify return code: 0 (ok)；若失敗，請檢查是否遺漏中繼憑證或主機名不符。
+- 若系統有既有 CA bundle，亦可維持原檔並將 Illumio PCE 相關 CA 追加到同一檔案，以避免破壞既有信任鏈設定。
+
+
+==================================================
+[4] 安裝 Illumio VEN 套件
+==================================================
+
+================Install the VEN Package:================
+inutoc . && installp -acXgd . illumio-ven
+（同樣在當前目錄更新 TOC，並安裝 illumio-ven 套件。
+ installp 參數補充：
+ -a Apply 安裝
+ -c Clean 安裝後清理暫存
+ -X 允許自動擴充分割區/檔案系統（必要時）
+ -g 解析相依（當前平台可嘗試自動解決相依性）
+ -d . 從當前目錄讀取安裝映像
+ 請確認 illumio-ven 的映像檔已放在此目錄）
+
+補充：
+- 若系統未安裝 Perl 或其他相依組件，後續啟用步驟可能失敗；AIX 通常內建 Perl，但若缺失請先安裝。
+- 安裝完成後可用 lslpp -L | grep -i illumio 或執行 /opt/illumio_ven/illumio-ven-ctl status 檢查。
+
+
+==================================================
+[5] 啟用 Illumio VEN
+==================================================
+
+================Activate the VEN:================
+cd /opt/illumio_ven
+（切換至 VEN 安裝目錄；大多數控制腳本位於此處）
+
+perl -pi -e "s/{pce_fqdn_value}/<pce_fqdn>/g" runtime_env.yml
+（以就地替換方式更新 runtime_env.yml 中的 PCE FQDN 佔位符。請將 <pce_fqdn> 替換為實際 PCE 的 FQDN，例如 pce.example.com。若檔案中不存在 {pce_fqdn_value}，此指令不會有替換效果，請先檢查檔內容）
+
+perl -pi -e "s/{pce_port_value}/8443/g" runtime_env.yml
+（將 PCE 連線埠設定為 8443；如您的 PCE 使用自訂埠，請改為對應的埠號）
+
+./illumio-ven-ctl activate --activation-code 1bf7754047275ef530e8f8fadd33bb1020b1a8c07a0b748004e6aa145ad8d3fa3710542f41b3e8f8e --management-server <pce_fqdn>:8443
+（以 activation code 啟用 VEN，並指定管理伺服器為 <pce_fqdn>:8443；請將 <pce_fqdn> 置換為實際網域。請確保：
+  - /var/ssl/certs/ca-bundle.crt 已包含 PCE 的完整信任鏈
+  - 主機能解析 <pce_fqdn> 並連線至 TCP 8443
+  - 防火牆允許對 PCE 的出站連線
+  - Activation code 具有時效性與權限，建議視為機密資訊）
+
+補充與疑難排解：
+- 若 perl 不可用，可改用 sed 進行替換（需注意 AIX sed 語法與備份參數差異）。
+- 若啟用失敗，先檢視 /opt/illumio_ven/log/ 內的日誌與 TLS 連線測試（見上方 openssl 測試）。
+- 啟用成功後，可用：
+  /opt/illumio_ven/illumio-ven-ctl status
+  檢查 VEN 狀態。
+- 若系統原本載入了舊版 IPFilter，啟用前更新/替換為新版本可確保與 VEN 的流量攔截與轉送行為一致。
+

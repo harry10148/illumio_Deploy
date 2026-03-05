@@ -1,0 +1,97 @@
+=============================================================================
+             Illumio VEN install (Windows PowerShell)
+=============================================================================
+
+[事前準備]
+-----------------------------------------------------------------------------
+1. 按下 Windows 鍵，搜尋 "PowerShell"。
+2. 在 "Windows PowerShell" 上按右鍵，選擇「以系統管理員身分執行」。
+   (這一步很重要，否則沒有權限寫入系統憑證區)
+
+[1] CA 憑證一鍵匯入 (Import CA via PowerShell)
+-----------------------------------------------------------------------------
+說明：將憑證內容存入暫存檔，並使用 Import-Certificate 指令匯入到
+      「本機電腦\受信任的根憑證授權單位」。
+
+# --- 請複製以下整段指令並在 PowerShell 中貼上 ---
+
+# 1. 定義憑證內容
+$certContent = @"
+-----BEGIN CERTIFICATE-----
+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
+ZpUPoUdMJg==
+-----END CERTIFICATE-----
+"@
+
+# 2. 儲存為暫存檔案 (使用 ASCII 編碼避免格式問題)
+$tempCertPath = "$env:TEMP\illumio-ca.crt"
+Set-Content -Path $tempCertPath -Value $certContent -Encoding Ascii
+
+# 3. 匯入憑證到「本機電腦 (LocalMachine)」的「根 (Root)」存放區
+Import-Certificate -FilePath $tempCertPath -CertStoreLocation Cert:\LocalMachine\Root
+
+# 4. 刪除暫存檔 (可選)
+Remove-Item -Path $tempCertPath
+
+# 顯示完成訊息
+Write-Host "憑證匯入作業已執行。" -ForegroundColor Green
+
+
+[2] 驗證指令 (Verification)
+-----------------------------------------------------------------------------
+
+# 方法 A: 檢查憑證庫是否確實包含該憑證
+# 說明: 在本機根憑證區搜尋主旨包含 "illumio" 的憑證
+Get-ChildItem Cert:\LocalMachine\Root | Where-Object { $_.Subject -like "*illumio*" }
+
+# 預期結果: 應顯示 Thumbprint (指紋) 與 Subject (主旨: CN=illumioCA...)
+
+
+# 方法 B: 使用 Curl 測試連線
+# 說明: Windows 10 (1803+) 和 Windows 11 內建 curl.exe
+# 請將 <Target_URL> 替換為實際網址
+curl.exe -v https://<Target_URL>
+
+# 預期結果:
+# 1. 看到 "*  SSL certificate verify ok"
+# 2. 若失敗會顯示 "Schannel: SEC_E_UNTRUSTED_ROOT" (代表憑證不受信任)
+
+# 注意: 若使用 PowerShell 的 Invoke-WebRequest (iwr) 指令:
+# Invoke-WebRequest https://<Target_URL>
+# 成功會回傳 200 OK 的物件；失敗則會直接拋出紅字錯誤訊息。
+=============================================================================
+[3.1] 腳本安裝指令
+PowerShell -Command "& {Set-ExecutionPolicy -Scope process remotesigned -Force; Start-Sleep -s 3; Set-Variable -Name ErrorActionPreference -Value SilentlyContinue; [System.Net.ServicePointManager]::SecurityProtocol=[Enum]::ToObject([System.Net.SecurityProtocolType], 3072); Set-Variable -Name ErrorActionPreference -Value Continue; (New-Object System.Net.WebClient).DownloadFile('https://pce.lab.local:8443/api/v27/software/ven/image?pair_script=pair.ps1&profile_id=9', (echo $env:windir\temp\pair.ps1)); & $env:windir\temp\pair.ps1 -management-server pce.lab.local:8443 -activation-code 12e8a57927cb56d7cc12b71cefe2d4d49954abe507dab743a5001617e24fa6967e37f37b666c54def;}"
+
+[3.2] 手動安裝後執行回報指令
+& "C:\Program\illumio\illumio-ven-ctl.exe" activate -activation-code <activation_code> -management-server <pce_fqdn:pce_portnumber>

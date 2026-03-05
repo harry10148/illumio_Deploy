@@ -1,0 +1,79 @@
+[前言與適用範圍]
+- 目的：在 AIX 環境中檢查既有 Illumio VEN 與 IPFilter 套件，並以正確順序卸載 VEN 與移除 IPFilter。（AIX 使用 installp 作為原生套件管理；需 root 權限）
+- 建議順序：先使用 illumio 官方控制工具「unpair」卸載/解綁 VEN（可回報至 PCE 並清理狀態）→ 再用 AIX installp 移除 VEN 套件 → 視需要移除 IPFilter 本體與文件包 → 重新檢查安裝狀態。（先 unpair 可避免在 PCE 上留下殘餘工作負載紀錄）
+- 注意：請確保複製貼上時，命令中的減號為標準 ASCII「-」，避免「–」導致命令失敗。
+
+==================================================
+[1] 檢查已安裝項目（確認現況與版本）
+==================================================
+
+================Check installed item================
+lslpp -L|egrep -i 'illu|ipf'
+（列出名稱包含 illu 或 ipf 的 LPP 套件；用於快速盤點 Illumio 與 IPFilter 組件）
+
+  illumio-ven                18.2.2.4339    C     F    Illumio VEN Agent
+（Illumio VEN 已安裝，版本 18.2.2.4339；C/F 表示狀態欄位，F 通常為完全安裝）
+
+  ipfl.man.en_US              5.3.0.5000    C     F    IP Filters Documentation -
+（IPFilter 英文說明文件包；非執行組件，可選擇保留或一併移除）
+
+  ipfl.rte                    5.3.0.5000    C     F    IP Filters
+（IPFilter 主套件本體；若 VEN 依賴此版本，移除前請先完成 VEN 的 unpair 與卸載）
+
+補充：
+- 若要看更詳細來源與摘要可用 lslpp -Lc <fileset>（例如 lslpp -Lc illumio-ven）。
+
+
+==================================================
+[2] 以 Illumio 控制工具卸載/解綁 VEN（首選）
+==================================================
+
+======================Uninstall VEN(illumio ctl)======================
+/opt/illumio_ven/illumio-ven-ctl unpair [recommended | saved | open]
+（使用 VEN 控制腳本與 PCE 進行解綁；常見選項含義：
+ - recommended: 解除安裝 VEN，並暫時僅允許 SSH/22，直到重新啟動。
+ - saved：解除安裝 VEN 並還原至首次安裝前的策略狀態 (iptables)。如果 VEN 是很久以前安裝的，需特別注意因為舊的防火牆設定可能已過時且不正確。
+ - open：解除安裝後不封鎖任何流量 (防火牆清空)。使用者需建立新的防火牆。
+執行前建議先 /opt/illumio_ven/illumio-ven-ctl status 確認現況；日誌位於 /opt/illumio_ven/log/）
+
+
+
+==================================================
+[3] 以 AIX 原生套件管理移除 VEN 套件
+==================================================
+
+======================Uninstall VEN(AIX native package manager)======================
+installp -u illumio-ven
+（從系統移除 illumio-ven 套件；若先前未執行 unpair，可能留有殘留設定或 PCE 配對關係。若此處遇到檔案使用中錯誤，請先確認 VEN 相關程序已停止）
+
+補充：
+- 可先檢查是否仍有相關程序：ps -ef | grep illumio（如仍在運行，先執行 illumio-ven-ctl stop 或完成 unpair）。
+- 移除後可用 lslpp -L | grep -i illumio 確認是否完全移除。
+
+
+==================================================
+[4] 移除 IPFilter（如需）
+==================================================
+
+======================ipfilter remove======================
+installp -u ipfl.rte
+（移除 IPFilter 主套件本體；若系統或其他應用不再需要 IPFilter，可執行此步。移除前建議先停用/清空規則，以防卸載過程中模組仍在用：
+  - 可用 ipf -D 停用過濾（若命令存在），或確認未有自動載入規則的啟動項）
+
+lslpp -L|egrep -i 'illu|ipf'
+（再次檢查剩餘套件；下方示例顯示僅剩文件包）
+
+  ipfl.man.en_US          5.3.0.5000    C     F    IP Filters Documentation -
+（只剩下說明文件包；若需徹底移除，執行 installp -u ipfl.man.en_US 即可）
+
+補充與注意：
+- 若 installp -u ipfl.rte 遇到失敗，可能因核心模組/服務仍載入或檔案被占用；請確保過濾功能已停用並重試。
+- 依作業標準可保留文件包作為參考，或一併移除以保持系統精簡。
+
+
+==================================================
+[5] 後續驗證與清理（建議）
+==================================================
+- 驗證套件清單：lslpp -L|egrep -i 'illu|ipf' 應無 illumio-ven 與 ipfl.rte（若要完全清空，連 ipfl.man.en_US 也可移除）。
+
+
