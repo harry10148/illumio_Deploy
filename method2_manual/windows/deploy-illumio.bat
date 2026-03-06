@@ -11,6 +11,7 @@ REM ==========================================
 REM 設定區 (請依環境修改)
 REM ==========================================
 set "EXE_FILE=25.2.20-2018_illumio-ven-25.2.20-2018.win.x64.exe"
+set "SOURCE_DIR="
 set "ACTIVATION_CODE=<YOUR_ACTIVATION_CODE>"
 set "MANAGEMENT_SERVER=<YOUR_PCE_FQDN:PORT>"
 set "INSTALL_DIR=C:\Program Files\Illumio"
@@ -67,8 +68,12 @@ REM === Step 2: 安裝 VEN ===
 call :Log.
 call :Log [Step 2/3] 安裝 Illumio VEN Agent...
 
-set "SCRIPT_DIR=%~dp0"
-set "INSTALLER=%SCRIPT_DIR%%EXE_FILE%"
+if "%SOURCE_DIR%"=="" (
+    set "TARGET_DIR=%~dp0"
+) else (
+    set "TARGET_DIR=%SOURCE_DIR%"
+)
+set "INSTALLER=%TARGET_DIR%\%EXE_FILE%"
 
 if not exist "%INSTALLER%" (
     call :Log [ERROR] 找不到安裝檔: %INSTALLER%

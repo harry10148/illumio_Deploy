@@ -25,17 +25,17 @@
 ### PowerShell 版
 
 ```powershell
-# 預設路徑安裝 (SCCM 執行指令)
+# 預設路徑安裝 (自動尋找與腳本同目錄下的 EXE)
 PowerShell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -WindowStyle Hidden -File Deploy-Illumio.ps1 -ActivationCode "<CODE>" -ManagementServer "<PCE_FQDN>:<PORT>"
 
-# 自訂安裝路徑
-PowerShell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -WindowStyle Hidden -File Deploy-Illumio.ps1 -InstallDir "D:\Illumio" -DataDir "D:\Illumio_Data" -ActivationCode "<CODE>" -ManagementServer "<PCE_FQDN>:<PORT>"
+# 指定安裝檔來源目錄與自訂安裝路徑
+PowerShell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -WindowStyle Hidden -File Deploy-Illumio.ps1 -SourceDir "Z:\Installers" -InstallDir "D:\Illumio" -DataDir "D:\Illumio_Data" -ActivationCode "<CODE>" -ManagementServer "<PCE_FQDN>:<PORT>"
 ```
 
 ### Batch 版
 
 1. 用文字編輯器打開 `deploy-illumio.bat`
-2. 修改設定區的變數：`EXE_FILE`、`ACTIVATION_CODE`、`MANAGEMENT_SERVER`、`INSTALL_DIR`
+2. 修改設定區的變數：`EXE_FILE`、`SOURCE_DIR` (可選，留空則為同目錄)、`ACTIVATION_CODE`、`MANAGEMENT_SERVER`、`INSTALL_DIR`
 3. SCCM 執行指令直接設定為：
 ```cmd
 cmd.exe /c deploy-illumio.bat
@@ -99,3 +99,13 @@ Get-Service -Name "IllumioVEN" -ErrorAction SilentlyContinue
 | 安裝後找不到 `illumio-ven-ctl.exe` | 查看 `%TEMP%\IllumioDeploy.log` 確認安裝檔的 Exit Code，檢查是否被防毒阻擋 |
 | 啟用失敗 | 確認憑證已匯入、可連線至 PCE、Activation Code 有效 |
 | 執行策略限制 | 確認 PowerShell 指令加上了 `-ExecutionPolicy Bypass` |
+
+### PowerShell 參數說明
+| 參數名 | 說明 |
+|---|---|
+| `ActivationCode` | (必填) 您的 Activation Code |
+| `ManagementServer` | (必填) PCE 管理節點與 Port，例如 `pce.example.com:8443` |
+| `InstallDir` | VEN 安裝目錄 (選填)，預設 `C:\Program Files\Illumio` |
+| `DataDir` | VEN 資料儲存目錄 (選填)，預設 `C:\ProgramData\Illumio` |
+| `SourceDir` | VEN 安裝檔 `.exe` 所在目錄 (選填)，預設自動帶入腳本所在位置 |
+| `ExeFile` | 安裝檔名 (選填)，預設 `25.2.20-2018_illumio-ven-25.2.20-2018.win.x64.exe` |

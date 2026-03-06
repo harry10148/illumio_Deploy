@@ -14,7 +14,10 @@
     VEN 資料目錄。預設: "C:\ProgramData\Illumio"
 
 .PARAMETER ExeFile
-    VEN 安裝程式檔名 (需與腳本在同一目錄)
+    VEN 安裝程式檔名 (需與腳本在同一目錄，除非指定 SourceDir)
+
+.PARAMETER SourceDir
+    安裝檔所在目錄。預設為空 (自動帶入腳本所在目錄)
 
 .PARAMETER ActivationCode
     Activation Code
@@ -33,6 +36,7 @@
 param(
     [string]$InstallDir       = "C:\Program Files\Illumio",
     [string]$DataDir          = "C:\ProgramData\Illumio",
+    [string]$SourceDir        = "",
     [string]$ExeFile          = "25.2.20-2018_illumio-ven-25.2.20-2018.win.x64.exe",
     [string]$ActivationCode   = "<YOUR_ACTIVATION_CODE>",
     [string]$ManagementServer = "<YOUR_PCE_FQDN:PORT>"
@@ -95,7 +99,11 @@ try {
     Write-Log "INFO" ""
     Write-Log "INFO" "[Step 2/3] 安裝 Illumio VEN Agent..."
 
-    $ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Definition
+    if (-not [string]::IsNullOrEmpty($SourceDir)) {
+        $ScriptPath = $SourceDir
+    } else {
+        $ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Definition
+    }
     $InstallerPath = Join-Path $ScriptPath $ExeFile
 
     if (-not (Test-Path $InstallerPath)) {

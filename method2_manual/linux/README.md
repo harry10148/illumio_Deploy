@@ -19,7 +19,10 @@ sudo bash deploy-illumio.sh
 
 腳本會依序執行：偵測 OS → 檢查套件(缺件即停) → 匯入憑證 → 安裝 VEN → 啟用。
 
-> **使用前**：請先編輯腳本中的 `ACTIVATION_CODE` 和 `MANAGEMENT_SERVER`。
+> **執行前請先編輯 `deploy-illumio.sh` 並修改以下變數**：
+> - `ACTIVATION_CODE`: 您的 Activation Code
+> - `MANAGEMENT_SERVER`: PCE 管理節點與 Port，例如 `pce.example.com:8443`
+> - `SOURCE_DIR`: (選填) `.rpm` 或 `.deb` 安裝包所在的目錄。若留空，則會自動在腳本相同的目錄下尋找安裝包。
 
 ---
 

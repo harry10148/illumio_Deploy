@@ -24,8 +24,9 @@ set -e
 # ==========================================
 ACTIVATION_CODE="<YOUR_ACTIVATION_CODE>"
 MANAGEMENT_SERVER="<YOUR_PCE_FQDN:PORT>"
-VEN_RPM_FILE=""    # 留空=自動偵測同目錄 .rpm
-VEN_DEB_FILE=""    # 留空=自動偵測同目錄 .deb
+SOURCE_DIR=""      # 留空=自動尋找腳本所在目錄，可指定絕對路徑例如 "/tmp/installers"
+VEN_RPM_FILE=""    # 留空=自動偵測 SOURCE_DIR 內的 .rpm
+VEN_DEB_FILE=""    # 留空=自動偵測 SOURCE_DIR 內的 .deb
 # ==========================================
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
@@ -116,19 +117,21 @@ fi
 # === Step 4: 安裝 VEN ===
 print_header "Step 4/5: 安裝 VEN 套件"
 
+[ -z "$SOURCE_DIR" ] && TARGET_DIR="$SCRIPT_DIR" || TARGET_DIR="$SOURCE_DIR"
+
 case "$OS_TYPE" in
     rhel|centos|rocky|almalinux|ol)
-        [ -z "$VEN_RPM_FILE" ] && VEN_RPM_FILE=$(ls "$SCRIPT_DIR"/*.rpm 2>/dev/null | head -1) || VEN_RPM_FILE="$SCRIPT_DIR/$VEN_RPM_FILE"
+        [ -z "$VEN_RPM_FILE" ] && VEN_RPM_FILE=$(ls "$TARGET_DIR"/*.rpm 2>/dev/null | head -1) || VEN_RPM_FILE="$TARGET_DIR/$VEN_RPM_FILE"
         if [ -z "$VEN_RPM_FILE" ] || [ ! -f "$VEN_RPM_FILE" ]; then
-            print_error "找不到 VEN RPM 安裝包。請放在: $SCRIPT_DIR"; exit 1
+            print_error "找不到 VEN RPM 安裝包。請確保留在: $TARGET_DIR"; exit 1
         fi
         print_info "安裝: $(basename "$VEN_RPM_FILE")"
         rpm -ivh "$VEN_RPM_FILE"
         print_ok "VEN 安裝完成。" ;;
     ubuntu|debian)
-        [ -z "$VEN_DEB_FILE" ] && VEN_DEB_FILE=$(ls "$SCRIPT_DIR"/*.deb 2>/dev/null | head -1) || VEN_DEB_FILE="$SCRIPT_DIR/$VEN_DEB_FILE"
+        [ -z "$VEN_DEB_FILE" ] && VEN_DEB_FILE=$(ls "$TARGET_DIR"/*.deb 2>/dev/null | head -1) || VEN_DEB_FILE="$TARGET_DIR/$VEN_DEB_FILE"
         if [ -z "$VEN_DEB_FILE" ] || [ ! -f "$VEN_DEB_FILE" ]; then
-            print_error "找不到 VEN DEB 安裝包。請放在: $SCRIPT_DIR"; exit 1
+            print_error "找不到 VEN DEB 安裝包。請確保留在: $TARGET_DIR"; exit 1
         fi
         print_info "安裝: $(basename "$VEN_DEB_FILE")"
         dpkg -i "$VEN_DEB_FILE"
