@@ -1,0 +1,39 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temporary files and logs
+*.log
+*.tmp
+temp/
+tmp/
+
+# Illumio VEN Installers (Large binaries should not be in git)
+*.exe
+*.rpm
+*.deb
+*.bff
+*.msi
+*.pkg
+*.tar
+*.tar.gz
+*.zip
+
+# Sensitive information (Just in case, though we scrubbed it)
+# *.crt
+# *.key
+# *.pem
