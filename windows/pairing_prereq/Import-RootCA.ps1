@@ -39,10 +39,14 @@ try {
     Write-Output "============================================"
     Write-Output ""
 
-    # 準備憑證內容
+    # 準備憑證內容 (優先順序: -CertFile 參數 > 同目錄 illumio-ca.crt > 內嵌憑證)
+    $localCertPath = Join-Path $PSScriptRoot "illumio-ca.crt"
     if ($CertFile -ne "" -and (Test-Path $CertFile)) {
-        Write-Output "[INFO] 使用外部憑證檔案: $CertFile"
+        Write-Output "[INFO] 使用外部憑證檔案 (-CertFile): $CertFile"
         $certContent = Get-Content -Path $CertFile -Raw
+    } elseif ($CertFile -eq "" -and (Test-Path $localCertPath)) {
+        Write-Output "[INFO] 使用同目錄憑證檔案: $localCertPath"
+        $certContent = Get-Content -Path $localCertPath -Raw
     } else {
         if ($CertFile -ne "") {
             Write-Warning "指定的憑證檔案不存在: $CertFile，改用內嵌憑證。"

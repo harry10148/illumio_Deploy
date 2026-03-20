@@ -1,4 +1,4 @@
-# Illumio VEN — 方式一：使用官方配對腳本 (Windows)
+# Illumio VEN — 官方配對前置作業 (Windows)
 
 > 適用於：Windows Server 2016 / 2019 / 2022、Windows 10 / 11  
 > 最後更新：2026-03-05
@@ -60,7 +60,14 @@ Write-Host "憑證匯入完成。" -ForegroundColor Green
 ### 驗證憑證
 
 ```powershell
+# 方法 A：確認憑證存在於根憑證庫
 Get-ChildItem Cert:\LocalMachine\Root | Where-Object { $_.Subject -like "*illumio*" }
+# 預期看到: Thumbprint 與 Subject (CN=illumioCA...)
+
+# 方法 B：curl.exe TLS 握手測試 (Windows 10 1803+ / Server 2019+ 內建)
+curl.exe -v https://<PCE_FQDN>:<PORT>
+# 預期看到: "*  SSL certificate verify ok"
+# 若失敗會顯示: "Schannel: SEC_E_UNTRUSTED_ROOT"
 ```
 
 ---

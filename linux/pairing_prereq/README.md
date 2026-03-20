@@ -1,4 +1,4 @@
-# Illumio VEN — 方式一：使用官方配對腳本 (Linux)
+# Illumio VEN — 官方配對前置作業 (Linux)
 
 > 適用於：RHEL 7/8/9、CentOS 7、Rocky Linux、AlmaLinux、Ubuntu、Debian  
 > 最後更新：2026-03-05
@@ -78,8 +78,15 @@ sudo update-ca-certificates
 ### 驗證
 
 ```bash
+# 方法 A：curl TLS 握手測試 (建議)
 curl -vvI https://<PCE_FQDN>:<PORT>
-# 預期: "SSL certificate verify ok"
+# 預期看到: "SSL certificate verify ok"
+# 若出現 "curl: (60) SSL certificate problem" 代表憑證未正確匯入
+
+# 方法 B：確認 CA 已合併進系統信任庫 (RHEL 系列)
+grep -i "illumio" /etc/pki/tls/certs/ca-bundle.crt
+# 預期看到: "# illumioCA" 或相關文字
+# 若無輸出，請重新執行 update-ca-trust extract
 ```
 
 ---

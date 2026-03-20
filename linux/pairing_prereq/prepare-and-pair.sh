@@ -37,6 +37,9 @@ print_fail() { echo -e "  ${RED}[MISS]${NC} $1"; }
 print_skip() { echo -e "  ${YELLOW}[SKIP]${NC} $1"; }
 print_info() { echo -e "  ${BLUE}[INFO]${NC} $1"; }
 
+# dpkg 需過濾 "^ii"，排除 rc（已移除但保留設定）等誤判狀態
+dpkg_check() { dpkg -l "$1" 2>/dev/null | grep -q "^ii"; }
+
 # ==========================================
 # 權限檢查
 # ==========================================
@@ -44,6 +47,8 @@ if [ "$(id -u)" -ne 0 ]; then
     echo -e "${RED}[ERROR] 此腳本需要 root 權限。請使用 sudo 執行。${NC}"
     exit 1
 fi
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # ==========================================
 # Step 1: 偵測 OS 類型
@@ -86,7 +91,7 @@ case "$OS_TYPE" in
     ubuntu|debian)
         print_info "Ubuntu / Debian 套件清單"
         REQUIRED_PKGS=(dnsutils curl libgmp10 ipset iptables libcap2 libmnl0 libnfnetlink0 net-tools sed)
-        PKG_CHECK="dpkg -l"
+        PKG_CHECK="dpkg_check"
         ;;
     *)
         echo -e "${RED}[ERROR] 不支援的 OS: $OS_TYPE${NC}"
@@ -131,9 +136,20 @@ fi
 # ==========================================
 print_header "Step 3: 匯入自簽 CA 憑證"
 
+CERT_CONTENT=$(cat << 'CERT_EOF'
 -----BEGIN CERTIFICATE-----
 PLACEHOLDER_CERTIFICATE_CONTENT_REPLACE_WITH_YOUR_ACTUAL_CERTIFICATE
 -----END CERTIFICATE-----
+CERT_EOF
+)
+
+# 優先使用腳本同目錄下的 illumio-ca.crt，若有則覆蓋內嵌憑證
+if [ -f "$SCRIPT_DIR/illumio-ca.crt" ]; then
+    print_info "使用外部憑證: $SCRIPT_DIR/illumio-ca.crt"
+    CERT_CONTENT=$(cat "$SCRIPT_DIR/illumio-ca.crt")
+else
+    print_info "使用腳本內嵌憑證"
+fi
 
 case "$OS_TYPE" in
     rhel|centos|rocky|almalinux|ol)

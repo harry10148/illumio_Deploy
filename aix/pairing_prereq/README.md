@@ -1,4 +1,4 @@
-# Illumio VEN — 方式一：使用官方配對方式 (AIX)
+# Illumio VEN — 官方配對前置作業 (AIX)
 
 > 適用於：AIX 7.1 / 7.2 / 7.3  
 > 最後更新：2026-03-05
@@ -10,7 +10,7 @@
 此方式使用 Illumio 官方提供的 AIX 配對腳本 (`pair.aix.sh`)，從 PCE 自動下載並完成 VEN 安裝與啟用。
 
 **執行前必須：**
-1. 確認 IPFilter 已正確安裝（參考 [方式二 AIX 手冊](../../method2_manual/aix/README.md) 步驟一~二）
+1. 確認 IPFilter 已正確安裝（參考 [方式二 AIX 手冊](../manual_deploy/README.md) 步驟一~二）
 2. 匯入自簽 CA 憑證（否則 `curl` 下載時會 SSL 驗證失敗）
 
 ---
@@ -86,4 +86,4 @@ chmod +x /opt/illumio_ven/tmp/pair.sh && \
 | `curl` SSL 驗證失敗 | 憑證未匯入或內容不完整，請重新執行步驟一 |
 | 配對腳本下載失敗 | 確認 DNS 可解析 PCE FQDN，防火牆允許 TCP 8443 出站 |
 | VEN 啟用失敗 | 確認 IPFilter 已安裝 Illumio 版，檢查 `/opt/illumio_ven/log/` |
-| IPFilter 相關問題 | 參考 [方式二 AIX 手冊](../../method2_manual/aix/README.md) 步驟一~二 |
+| IPFilter 相關問題 | 參考 [方式二 AIX 手冊](../manual_deploy/README.md) 步驟一~二 |

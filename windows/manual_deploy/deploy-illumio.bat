@@ -10,7 +10,7 @@ setlocal enabledelayedexpansion
 REM ==========================================
 REM 設定區 (請依環境修改)
 REM ==========================================
-set "EXE_FILE=25.2.20-2018_illumio-ven-25.2.20-2018.win.x64.exe"
+set "EXE_FILE="
 set "SOURCE_DIR="
 set "ACTIVATION_CODE=<YOUR_ACTIVATION_CODE>"
 set "MANAGEMENT_SERVER=<YOUR_PCE_FQDN:PORT>"
@@ -30,11 +30,18 @@ REM === Step 1: 匯入憑證 ===
 call :Log [Step 1/3] 檢查並匯入自簽 CA 憑證...
 
 set "TEMP_CERT=%TEMP%\illumio-ca.crt"
+
+REM 優先使用腳本同目錄下的 illumio-ca.crt，若有則直接複製，否則使用內嵌憑證
+if exist "%~dp0illumio-ca.crt" (
+    call :Log [INFO]   使用同目錄憑證: %~dp0illumio-ca.crt
+    copy /Y "%~dp0illumio-ca.crt" "%TEMP_CERT%" >nul
+) else (
 (
 -----BEGIN CERTIFICATE-----
 PLACEHOLDER_CERTIFICATE_CONTENT_REPLACE_WITH_YOUR_ACTUAL_CERTIFICATE
 -----END CERTIFICATE-----
 ) > "%TEMP_CERT%"
+)
 
 REM 從內嵌憑證動態計算 SHA1 Thumbprint (適用於任何環境更換憑證)
 set "THUMBPRINT="
@@ -73,7 +80,20 @@ if "%SOURCE_DIR%"=="" (
 ) else (
     set "TARGET_DIR=%SOURCE_DIR%"
 )
-set "INSTALLER=%TARGET_DIR%\%EXE_FILE%"
+
+REM EXE_FILE 留空時，自動偵測目錄內第一個 .exe
+if "%EXE_FILE%"=="" (
+    for %%F in ("%TARGET_DIR%*.exe") do (
+        if not defined EXE_FILE set "EXE_FILE=%%~nxF"
+    )
+    if "%EXE_FILE%"=="" (
+        call :Log [ERROR] 在 %TARGET_DIR% 找不到 .exe 安裝檔，請設定 EXE_FILE 變數。
+        exit /b 1
+    )
+    call :Log [INFO]   自動偵測安裝檔: %EXE_FILE%
+)
+
+set "INSTALLER=%TARGET_DIR%%EXE_FILE%"
 
 if not exist "%INSTALLER%" (
     call :Log [ERROR] 找不到安裝檔: %INSTALLER%

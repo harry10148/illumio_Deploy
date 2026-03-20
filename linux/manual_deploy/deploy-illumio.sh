@@ -94,9 +94,20 @@ print_ok "所有相依套件已安裝。"
 # === Step 3: 匯入憑證 ===
 print_header "Step 3/5: 匯入自簽 CA 憑證"
 
+CERT_CONTENT=$(cat << 'CERT_EOF'
 -----BEGIN CERTIFICATE-----
 PLACEHOLDER_CERTIFICATE_CONTENT_REPLACE_WITH_YOUR_ACTUAL_CERTIFICATE
 -----END CERTIFICATE-----
+CERT_EOF
+)
+
+# 優先使用腳本同目錄下的 illumio-ca.crt，若有則覆蓋內嵌憑證
+if [ -f "$SCRIPT_DIR/illumio-ca.crt" ]; then
+    print_info "使用外部憑證: $SCRIPT_DIR/illumio-ca.crt"
+    CERT_CONTENT=$(cat "$SCRIPT_DIR/illumio-ca.crt")
+else
+    print_info "使用腳本內嵌憑證"
+fi
 
 case "$OS_TYPE" in
     rhel|centos|rocky|almalinux|ol) CERT_DIR="/etc/pki/ca-trust/source/anchors"; UPDATE_CMD="update-ca-trust force-enable && update-ca-trust extract" ;;
@@ -117,26 +128,39 @@ fi
 # === Step 4: 安裝 VEN ===
 print_header "Step 4/5: 安裝 VEN 套件"
 
-[ -z "$SOURCE_DIR" ] && TARGET_DIR="$SCRIPT_DIR" || TARGET_DIR="$SOURCE_DIR"
-
+# 先確認 VEN 是否已安裝，已安裝則跳過此步驟
+VEN_ALREADY_INSTALLED=false
 case "$OS_TYPE" in
     rhel|centos|rocky|almalinux|ol)
-        [ -z "$VEN_RPM_FILE" ] && VEN_RPM_FILE=$(ls "$TARGET_DIR"/*.rpm 2>/dev/null | head -1) || VEN_RPM_FILE="$TARGET_DIR/$VEN_RPM_FILE"
-        if [ -z "$VEN_RPM_FILE" ] || [ ! -f "$VEN_RPM_FILE" ]; then
-            print_error "找不到 VEN RPM 安裝包。請確保留在: $TARGET_DIR"; exit 1
-        fi
-        print_info "安裝: $(basename "$VEN_RPM_FILE")"
-        rpm -ivh "$VEN_RPM_FILE"
-        print_ok "VEN 安裝完成。" ;;
+        rpm -q illumio-ven &>/dev/null && VEN_ALREADY_INSTALLED=true ;;
     ubuntu|debian)
-        [ -z "$VEN_DEB_FILE" ] && VEN_DEB_FILE=$(ls "$TARGET_DIR"/*.deb 2>/dev/null | head -1) || VEN_DEB_FILE="$TARGET_DIR/$VEN_DEB_FILE"
-        if [ -z "$VEN_DEB_FILE" ] || [ ! -f "$VEN_DEB_FILE" ]; then
-            print_error "找不到 VEN DEB 安裝包。請確保留在: $TARGET_DIR"; exit 1
-        fi
-        print_info "安裝: $(basename "$VEN_DEB_FILE")"
-        dpkg -i "$VEN_DEB_FILE"
-        print_ok "VEN 安裝完成。" ;;
+        dpkg -l illumio-ven 2>/dev/null | grep -q "^ii" && VEN_ALREADY_INSTALLED=true ;;
 esac
+
+if [ "$VEN_ALREADY_INSTALLED" = true ]; then
+    print_skip "VEN 已安裝，跳過安裝步驟。"
+else
+    [ -z "$SOURCE_DIR" ] && TARGET_DIR="$SCRIPT_DIR" || TARGET_DIR="$SOURCE_DIR"
+
+    case "$OS_TYPE" in
+        rhel|centos|rocky|almalinux|ol)
+            [ -z "$VEN_RPM_FILE" ] && VEN_RPM_FILE=$(ls "$TARGET_DIR"/*.rpm 2>/dev/null | head -1) || VEN_RPM_FILE="$TARGET_DIR/$VEN_RPM_FILE"
+            if [ -z "$VEN_RPM_FILE" ] || [ ! -f "$VEN_RPM_FILE" ]; then
+                print_error "找不到 VEN RPM 安裝包。請確保留在: $TARGET_DIR"; exit 1
+            fi
+            print_info "安裝: $(basename "$VEN_RPM_FILE")"
+            rpm -ivh "$VEN_RPM_FILE"
+            print_ok "VEN 安裝完成。" ;;
+        ubuntu|debian)
+            [ -z "$VEN_DEB_FILE" ] && VEN_DEB_FILE=$(ls "$TARGET_DIR"/*.deb 2>/dev/null | head -1) || VEN_DEB_FILE="$TARGET_DIR/$VEN_DEB_FILE"
+            if [ -z "$VEN_DEB_FILE" ] || [ ! -f "$VEN_DEB_FILE" ]; then
+                print_error "找不到 VEN DEB 安裝包。請確保留在: $TARGET_DIR"; exit 1
+            fi
+            print_info "安裝: $(basename "$VEN_DEB_FILE")"
+            dpkg -i "$VEN_DEB_FILE"
+            print_ok "VEN 安裝完成。" ;;
+    esac
+fi
 
 # === Step 5: 啟用 ===
 print_header "Step 5/5: 啟用 VEN Agent"

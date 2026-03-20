@@ -37,7 +37,7 @@ param(
     [string]$InstallDir       = "C:\Program Files\Illumio",
     [string]$DataDir          = "C:\ProgramData\Illumio",
     [string]$SourceDir        = "",
-    [string]$ExeFile          = "25.2.20-2018_illumio-ven-25.2.20-2018.win.x64.exe",
+    [string]$ExeFile          = "",
     [string]$ActivationCode   = "<YOUR_ACTIVATION_CODE>",
     [string]$ManagementServer = "<YOUR_PCE_FQDN:PORT>"
 )
@@ -80,6 +80,13 @@ try {
     Write-Log "INFO" ""
     Write-Log "INFO" "[Step 1/3] 檢查並匯入自簽 CA 憑證..."
 
+    # 優先使用腳本同目錄下的 illumio-ca.crt，若有則覆蓋內嵌憑證
+    $localCertPath = Join-Path $PSScriptRoot "illumio-ca.crt"
+    if (Test-Path $localCertPath) {
+        Write-Log "INFO" "使用同目錄憑證檔案: $localCertPath"
+        $EmbeddedCertContent = Get-Content -Path $localCertPath -Raw
+    }
+
     $tempCertPath = "$env:TEMP\illumio-ca.crt"
     Set-Content -Path $tempCertPath -Value $EmbeddedCertContent -Encoding Ascii
     $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($tempCertPath)
@@ -104,6 +111,15 @@ try {
     } else {
         $ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Definition
     }
+
+    # ExeFile 留空時，自動偵測 SourceDir 內唯一的 .exe
+    if ([string]::IsNullOrEmpty($ExeFile)) {
+        $foundExe = Get-ChildItem -Path $ScriptPath -Filter "*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+        if (-not $foundExe) { Throw "在 $ScriptPath 找不到 .exe 安裝檔，請指定 -ExeFile 參數。" }
+        $ExeFile = $foundExe.Name
+        Write-Log "INFO" "自動偵測安裝檔: $ExeFile"
+    }
+
     $InstallerPath = Join-Path $ScriptPath $ExeFile
 
     if (-not (Test-Path $InstallerPath)) {

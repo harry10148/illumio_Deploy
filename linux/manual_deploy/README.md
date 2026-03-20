@@ -1,4 +1,4 @@
-# Illumio VEN — 方式二：手動安裝 + 手動回報 (Linux)
+# Illumio VEN — 完整手動部署 (Linux)
 
 > 適用於：RHEL 7/8/9、CentOS 7、Rocky Linux、AlmaLinux、Ubuntu、Debian  
 > 最後更新：2026-03-05
@@ -55,8 +55,26 @@ EOF
 sudo update-ca-trust force-enable
 sudo update-ca-trust extract
 
-# 驗證
+# Ubuntu / Debian
+sudo tee /usr/local/share/ca-certificates/illumio-ca.crt << 'EOF'
+-----BEGIN CERTIFICATE-----
+PLACEHOLDER_CERTIFICATE_CONTENT_REPLACE_WITH_YOUR_ACTUAL_CERTIFICATE
+-----END CERTIFICATE-----
+EOF
+
+sudo update-ca-certificates
+```
+
+#### 驗證憑證是否生效
+
+```bash
+# 方法 A：curl TLS 握手測試
 curl -vvI https://<PCE_FQDN>:<PORT>
+# 預期看到: "SSL certificate verify ok"
+
+# 方法 B：確認 CA 已合併進系統信任庫 (RHEL 系列)
+grep -i "illumio" /etc/pki/tls/certs/ca-bundle.crt
+# 預期看到: "# illumioCA" 相關文字；若無輸出，請重新執行 update-ca-trust extract
 ```
 
 ### 步驟三：安裝 VEN

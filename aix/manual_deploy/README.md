@@ -1,4 +1,4 @@
-# Illumio VEN — 方式二：手動安裝 + 手動回報 (AIX)
+# Illumio VEN — 完整手動部署 (AIX)
 
 > 適用於：AIX 7.1 / 7.2 / 7.3  
 > 最後更新：2026-03-05
@@ -124,8 +124,36 @@ perl -pi -e "s/{pce_port_value}/8443/g" runtime_env.yml
 
 ## 附錄：卸載
 
+> 建議順序：**先 unpair → 再移除套件 → 視需要移除 IPFilter**
+
+### 步驟一：以官方工具解除配對
+
 ```bash
+# 確認 VEN 狀態
+/opt/illumio_ven/illumio-ven-ctl status
+
+# 選擇一種 unpair 模式:
+#   open        - 解除後流量完全開放 (需自行建立防火牆規則)
+#   recommended - 解除後僅允許 SSH/22，直到重新啟動
+#   saved       - 解除後還原至 VEN 安裝前的 iptables 狀態
 /opt/illumio_ven/illumio-ven-ctl unpair open
+```
+
+### 步驟二：移除 VEN 套件
+
+```bash
 installp -u illumio-ven
+
+# 確認已移除
 lslpp -L | egrep -i 'illu|ipf'
+```
+
+### 步驟三：移除 IPFilter（視需要）
+
+```bash
+installp -u ipfl.rte          # 移除主套件
+installp -u ipfl.man.en_US    # 移除說明文件包 (可選)
+
+# 確認
+lslpp -L | egrep -i ipf
 ```

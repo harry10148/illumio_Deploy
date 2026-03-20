@@ -1,4 +1,4 @@
-# Illumio VEN — 方式二：手動安裝 + 手動回報 (Windows)
+# Illumio VEN — 完整手動部署 (Windows)
 
 > 適用於：Windows Server 2016 / 2019 / 2022、Windows 10 / 11  
 > 最後更新：2026-03-05
