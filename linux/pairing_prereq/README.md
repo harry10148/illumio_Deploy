@@ -1,7 +1,7 @@
 # Illumio VEN — 官方配對前置作業 (Linux)
 
 > 適用於：RHEL 7/8/9、CentOS 7、Rocky Linux、AlmaLinux、Ubuntu、Debian  
-> 最後更新：2026-03-05
+> 最後更新：2026-04-24
 
 ---
 
@@ -114,3 +114,9 @@ chmod +x /opt/illumio_ven_data/tmp/pair.sh && \
 | `curl: (60) SSL certificate problem` | 憑證未匯入，重新執行步驟三 |
 | `update-ca-trust` 不存在 | `yum install -y ca-certificates` |
 | 配對腳本下載失敗 | 確認可連線至 PCE、DNS 解析正常 |
+
+---
+
+## 卸載
+
+若日後需要移除 VEN，請參閱 [完整手動部署手冊的卸載章節](../manual_deploy/README.md#卸載unpair--移除)，依序執行 Unpair → 移除套件。

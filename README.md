@@ -65,6 +65,29 @@ aix/
 
 ---
 
+## 系統前置需求
+
+部署前請確認各主機符合以下條件：
+
+| 項目 | 需求 |
+|------|------|
+| **磁碟空間** | 保留至少 **10 GB** 供 VEN 及資料存放使用 |
+| **時間同步** | NTP（Linux/AIX）或 Windows Time Service 必須正常運作，避免 TLS 時間差問題 |
+| **TLS 版本** | VEN ↔ PCE 最低需 **TLS 1.2** |
+| **憑證信任** | 需匯入 PCE 根 CA 憑證，VEN 必須能驗證完整的憑證信任鏈 |
+
+### 網路埠需求
+
+| 部署類型 | 埠號 | 用途 |
+|----------|------|------|
+| **本地部署 (On-Prem)** | TCP **8443** | VEN → PCE REST API (HTTPS) |
+| **本地部署 (On-Prem)** | TCP **8444** | VEN → PCE 長連線 (TLS-over-TCP) |
+| **SaaS 部署** | TCP **443** | REST API + 長連線（合併使用單一埠） |
+
+> **TLS 攔截注意**：若防火牆或 Proxy 啟用 TLS 深度封包檢測（MITM），請針對 VEN ↔ PCE 流量**關閉 TLS 檢查**。轉發的偽造憑證不包含完整憑證鏈，將導致 VEN 無法完成 TLS 握手。
+
+---
+
 ## 🚀 快速開始
 
 1. 取得 PCE 簽發的 **CA 憑證** (`illumio-ca.crt`)。
@@ -140,6 +163,29 @@ aix/
 | **Windows** | [📄 User Manual](windows/pairing_prereq/README.md) | [📄 User Manual](windows/manual_deploy/README.md) |
 | **Linux** | [📄 User Manual](linux/pairing_prereq/README.md) | [📄 User Manual](linux/manual_deploy/README.md) |
 | **AIX** | [📄 User Manual](aix/pairing_prereq/README.md) | [📄 User Manual](aix/manual_deploy/README.md) |
+
+---
+
+## System Prerequisites
+
+Before deploying, ensure each target host meets the following requirements:
+
+| Item | Requirement |
+|------|-------------|
+| **Disk Space** | Reserve at least **10 GB** for the VEN and its data |
+| **Time Sync** | NTP (Linux/AIX) or Windows Time Service must be running to prevent TLS clock-skew failures |
+| **TLS Version** | Minimum **TLS 1.2** for VEN ↔ PCE communication |
+| **Certificate Trust** | The PCE root CA certificate must be imported; the VEN must be able to validate the full certificate chain |
+
+### Network Port Requirements
+
+| Deployment Type | Port | Purpose |
+|-----------------|------|---------|
+| **On-Premises** | TCP **8443** | VEN → PCE REST API (HTTPS) |
+| **On-Premises** | TCP **8444** | VEN → PCE persistent long-lived TLS connection |
+| **SaaS** | TCP **443** | Both REST API and long-lived connection (single port) |
+
+> **TLS Inspection Warning**: If a firewall or proxy performs TLS inspection (MITM) on the path between the VEN and PCE, **disable TLS inspection for that traffic**. Forged certificates lack the full chain and will cause TLS handshake failures.
 
 ---
 

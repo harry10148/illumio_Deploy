@@ -1,7 +1,21 @@
 # Illumio VEN — 完整手動部署 (Windows)
 
 > 適用於：Windows Server 2016 / 2019 / 2022、Windows 10 / 11  
-> 最後更新：2026-03-05
+> 最後更新：2026-04-24
+
+---
+
+## 前置需求
+
+| 項目 | 需求 |
+|------|------|
+| **磁碟空間** | 保留至少 **10 GB** 供 VEN 使用 |
+| **時間同步** | Windows Time Service (W32tm) 必須正常運作 |
+| **網路連線** | 能連至 PCE：本地部署 TCP **8443**（REST API）+ **8444**（長連線）；SaaS 部署 TCP **443** |
+| **TLS 版本** | 最低支援 **TLS 1.2**（Windows Server 2012 R2 以上預設啟用） |
+| **執行權限** | 安裝需以 **系統管理員** 身分執行 |
+
+> **注意**：若路徑上有 TLS 攔截裝置（MITM），請針對 VEN ↔ PCE 流量**關閉 TLS 檢查**，否則憑證鏈不完整將導致連線失敗。
 
 ---
 
@@ -109,3 +123,37 @@ Get-Service -Name "IllumioVEN" -ErrorAction SilentlyContinue
 | `DataDir` | VEN 資料儲存目錄 (選填)，預設 `C:\ProgramData\Illumio` |
 | `SourceDir` | VEN 安裝檔 `.exe` 所在目錄 (選填)，預設自動帶入腳本所在位置 |
 | `ExeFile` | 安裝檔名 (選填)，預設 `25.2.20-2018_illumio-ven-25.2.20-2018.win.x64.exe` |
+
+---
+
+## 卸載（Unpair + 移除）
+
+> **建議順序：先 Unpair → 再移除**
+
+### 方法一：使用 VEN CLI（建議）
+
+以系統管理員身分開啟 PowerShell 或命令提示字元：
+
+```powershell
+& "C:\Program Files\Illumio\illumio-ven-ctl.exe" unpair [recommended | saved | open]
+```
+
+| 模式 | 說明 | 安全考量 |
+|------|------|----------|
+| `recommended` | 解除後僅開放 RDP (3389) 及 WinRM (5985/5986)，直到重新開機 | 若主機有其他服務，解除後將無法連線 |
+| `saved` | 解除後移除 Illumio WFP 過濾規則，還原 Windows 原生防火牆 | 適合一般生產環境 |
+| `open` | 解除後開放所有埠 | 高風險，僅用於隔離環境 |
+| `unmanaged` | 僅用於從未配對至 PCE 的 VEN，防火牆狀態維持不變 | — |
+
+### 方法二：透過 Windows 控制台
+
+1. 開啟「**控制台**」→「**程式和功能**」（或「新增/移除程式」）
+2. 找到 **Illumio VEN** → 點選「**解除安裝**」
+
+> 透過控制台移除時，系統預設以 `saved` 模式處理（移除 Illumio WFP 規則並重新啟用原生 Windows 防火牆）。
+
+### 方法三：從 PCE Web Console 遠端解除
+
+1. 登入 PCE Web Console → **Servers & Endpoints > Workloads**
+2. 切換至「**VENs**」分頁 → 選取目標主機
+3. 點選「**Unpair**」→ 選擇防火牆最終狀態 → 確認
