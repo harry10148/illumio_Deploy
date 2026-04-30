@@ -90,7 +90,7 @@ case "$OS_TYPE" in
         ;;
     ubuntu|debian)
         print_info "Ubuntu / Debian 套件清單"
-        REQUIRED_PKGS=(dnsutils curl libgmp10 ipset iptables libcap2 libmnl0 libnfnetlink0 net-tools sed)
+        REQUIRED_PKGS=(dnsutils curl libgmp10 ipset iptables libcap2 libmnl0 libnfnetlink0 net-tools sed uuid-runtime apt-transport-https)
         PKG_CHECK="dpkg_check"
         ;;
     *)
@@ -197,10 +197,10 @@ else
 fi
 
 echo ""
-echo "配對腳本範例："
+echo "配對腳本範例 (建議現代環境使用 --tlsv1.2；--tlsv1 僅供 RHEL 5 等老舊系統相容)："
 echo '  rm -fr /opt/illumio_ven_data/tmp && umask 026 && \'
 echo '  mkdir -p /opt/illumio_ven_data/tmp && \'
-echo '  curl --tlsv1 "https://<PCE_FQDN>:<PORT>/api/v27/software/ven/image?pair_script=pair.sh&profile_id=<ID>" \'
+echo '  curl --tlsv1.2 "https://<PCE_FQDN>:<PORT>/api/v27/software/ven/image?pair_script=pair.sh&profile_id=<ID>" \'
 echo '    -o /opt/illumio_ven_data/tmp/pair.sh && \'
 echo '  chmod +x /opt/illumio_ven_data/tmp/pair.sh && \'
 echo '  /opt/illumio_ven_data/tmp/pair.sh --management-server <PCE_FQDN>:<PORT> --activation-code <CODE>'

@@ -63,11 +63,13 @@ openssl s_client -connect <PCE_FQDN>:8443 \
 
 確認憑證已匯入且 IPFilter 已安裝後，執行 Illumio PCE 提供的 AIX 配對指令：
 
+> **關於 `curl --tlsv1`**：Illumio 官方腳本範例保留 `--tlsv1` 是為了相容老舊 OpenSSL（如 RHEL 5）。**現代 AIX 7.x 環境建議改用 `--tlsv1.2`** 以避免協商到不安全版本（PCE 端最低支援 TLS 1.2）。請確認 AIX 內建/安裝的 `curl` 版本支援 `--tlsv1.2`。
+
 ```bash
 rm -fr /opt/illumio_ven/tmp && \
 umask 026 && \
 mkdir -p /opt/illumio_ven/tmp && \
-curl --tlsv1 "https://<PCE_FQDN>:<PORT>/api/v27/software/ven/image?pair_script=pair.aix.sh&profile_id=<PROFILE_ID>" \
+curl --tlsv1.2 "https://<PCE_FQDN>:<PORT>/api/v27/software/ven/image?pair_script=pair.aix.sh&profile_id=<PROFILE_ID>" \
   -o /opt/illumio_ven/tmp/pair.sh && \
 chmod +x /opt/illumio_ven/tmp/pair.sh && \
 /opt/illumio_ven/tmp/pair.sh \

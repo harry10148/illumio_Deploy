@@ -83,6 +83,7 @@ aix/
 | **本地部署 (On-Prem)** | TCP **8443** | VEN → PCE REST API (HTTPS) |
 | **本地部署 (On-Prem)** | TCP **8444** | VEN → PCE 長連線 (TLS-over-TCP) |
 | **SaaS 部署** | TCP **443** | REST API + 長連線（合併使用單一埠） |
+| **SecureConnect (選用)** | UDP **500** + UDP **4500** | VEN 之間 IPsec 加密通訊 (IKE/NAT-T) |
 
 > **TLS 攔截注意**：若防火牆或 Proxy 啟用 TLS 深度封包檢測（MITM），請針對 VEN ↔ PCE 流量**關閉 TLS 檢查**。轉發的偽造憑證不包含完整憑證鏈，將導致 VEN 無法完成 TLS 握手。
 
@@ -184,6 +185,7 @@ Before deploying, ensure each target host meets the following requirements:
 | **On-Premises** | TCP **8443** | VEN → PCE REST API (HTTPS) |
 | **On-Premises** | TCP **8444** | VEN → PCE persistent long-lived TLS connection |
 | **SaaS** | TCP **443** | Both REST API and long-lived connection (single port) |
+| **SecureConnect (Optional)** | UDP **500** + UDP **4500** | IPsec encryption between VENs (IKE/NAT-T) |
 
 > **TLS Inspection Warning**: If a firewall or proxy performs TLS inspection (MITM) on the path between the VEN and PCE, **disable TLS inspection for that traffic**. Forged certificates lack the full chain and will cause TLS handshake failures.
 

@@ -72,7 +72,7 @@ case "$OS_TYPE" in
             if rpm -q "$pkg" &>/dev/null; then print_ok "$pkg"; else print_fail "$pkg"; MISSING_PKGS+=("$pkg"); fi
         done ;;
     ubuntu|debian)
-        REQUIRED_PKGS=(dnsutils curl libgmp10 ipset iptables libcap2 libmnl0 libnfnetlink0 net-tools sed)
+        REQUIRED_PKGS=(dnsutils curl libgmp10 ipset iptables libcap2 libmnl0 libnfnetlink0 net-tools sed uuid-runtime apt-transport-https)
         for pkg in "${REQUIRED_PKGS[@]}"; do
             if dpkg -l "$pkg" 2>/dev/null | grep -q "^ii"; then print_ok "$pkg"; else print_fail "$pkg"; MISSING_PKGS+=("$pkg"); fi
         done ;;

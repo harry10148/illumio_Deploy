@@ -14,6 +14,9 @@
 | **CA 憑證** | PCE 自簽 CA 憑證 (PEM 格式) |
 | **啟用碼** | PCE 配發的 Activation Code |
 | **PCE 位址** | 例如 `pce.example.com:8443` |
+| **網路埠** | 本地部署 TCP **8443** (REST API) + **8444** (長連線)；SaaS 部署 TCP **443** |
+
+> **SecureConnect 注意**：若日後啟用 Illumio SecureConnect (VEN 之間 IPsec 加密)，需額外開放 **UDP 500** 與 **UDP 4500**（IKE/NAT-T）。
 
 ---
 
@@ -96,6 +99,21 @@ lslpp -L | grep -i illumio
 
 ## 步驟五：啟用 VEN
 
+### 方法 A（建議）：直接 activate
+
+```bash
+/opt/illumio_ven/illumio-ven-ctl activate \
+    --activation-code <ACTIVATION_CODE> \
+    --management-server <PCE_FQDN>:8443
+
+# 驗證
+/opt/illumio_ven/illumio-ven-ctl status
+```
+
+### 方法 B（備用）：手改 runtime_env.yml
+
+> 僅在無法執行 `illumio-ven-ctl activate`（如自動化情境需先注入設定）時使用。
+
 ```bash
 cd /opt/illumio_ven
 perl -pi -e "s/{pce_fqdn_value}/<PCE_FQDN>/g" runtime_env.yml
@@ -104,9 +122,6 @@ perl -pi -e "s/{pce_port_value}/8443/g" runtime_env.yml
 ./illumio-ven-ctl activate \
     --activation-code <ACTIVATION_CODE> \
     --management-server <PCE_FQDN>:8443
-
-# 驗證
-/opt/illumio_ven/illumio-ven-ctl status
 ```
 
 ---
@@ -135,7 +150,7 @@ perl -pi -e "s/{pce_port_value}/8443/g" runtime_env.yml
 # 選擇一種 unpair 模式:
 #   open        - 解除後流量完全開放 (需自行建立防火牆規則)
 #   recommended - 解除後僅允許 SSH/22，直到重新啟動
-#   saved       - 解除後還原至 VEN 安裝前的 iptables 狀態
+#   saved       - 解除後移除 Illumio IPFilter 規則，還原至 VEN 安裝前的 IPFilter 狀態
 /opt/illumio_ven/illumio-ven-ctl unpair open
 ```
 

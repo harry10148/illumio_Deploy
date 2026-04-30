@@ -46,6 +46,14 @@ rpm -q bind-utils diffutils curl gawk gmp gzip libcap libnfnetlink net-tools nft
 sudo dnf install -y bind-utils diffutils curl gawk gmp gzip libcap libnfnetlink net-tools nftables sed shadow-utils tar util-linux
 ```
 
+### Ubuntu / Debian
+
+```bash
+dpkg -l dnsutils curl libgmp10 ipset iptables libcap2 libmnl0 libnfnetlink0 net-tools sed uuid-runtime apt-transport-https
+# 缺少時:
+sudo apt-get install -y dnsutils curl libgmp10 ipset iptables libcap2 libmnl0 libnfnetlink0 net-tools sed uuid-runtime apt-transport-https
+```
+
 ---
 
 ## 步驟三（手動方式）：匯入自簽 CA 憑證
@@ -93,11 +101,13 @@ grep -i "illumio" /etc/pki/tls/certs/ca-bundle.crt
 
 ## 步驟四：執行官方配對腳本
 
+> **關於 `curl --tlsv1`**：Illumio 官方腳本範例保留 `--tlsv1` 是為了相容 RHEL 5 等老舊系統（其 OpenSSL 不支援 TLS 1.2）。**現代環境（RHEL 7+ / Ubuntu 16.04+）建議改用 `--tlsv1.2`** 以避免協商到不安全版本（PCE 端最低支援 TLS 1.2）。
+
 ```bash
 rm -fr /opt/illumio_ven_data/tmp && \
 umask 026 && \
 mkdir -p /opt/illumio_ven_data/tmp && \
-curl --tlsv1 "https://<PCE_FQDN>:<PORT>/api/v27/software/ven/image?pair_script=pair.sh&profile_id=<ID>" \
+curl --tlsv1.2 "https://<PCE_FQDN>:<PORT>/api/v27/software/ven/image?pair_script=pair.sh&profile_id=<ID>" \
   -o /opt/illumio_ven_data/tmp/pair.sh && \
 chmod +x /opt/illumio_ven_data/tmp/pair.sh && \
 /opt/illumio_ven_data/tmp/pair.sh \

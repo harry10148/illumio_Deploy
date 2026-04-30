@@ -100,10 +100,11 @@ if not exist "%INSTALLER%" (
     exit /b 1
 )
 
+set "VEN_INSTALL_LOG=%TEMP%\IllumioVENInstall.log"
 if "%INSTALL_DIR%"=="C:\Program Files\Illumio" (
-    "%INSTALLER%" /install /quiet /norestart >> "%LOG_FILE%" 2>&1
+    "%INSTALLER%" /install /quiet /norestart /log "%VEN_INSTALL_LOG%" >> "%LOG_FILE%" 2>&1
 ) else (
-    "%INSTALLER%" /install /quiet /norestart INSTALLDIR="%INSTALL_DIR%" DATDIR="%DATA_DIR%" >> "%LOG_FILE%" 2>&1
+    "%INSTALLER%" /install /quiet /norestart /log "%VEN_INSTALL_LOG%" INSTALLFOLDER="%INSTALL_DIR%" DATAFOLDER="%DATA_DIR%" >> "%LOG_FILE%" 2>&1
 )
 
 if %errorlevel% neq 0 (

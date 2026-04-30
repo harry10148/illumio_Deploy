@@ -12,10 +12,12 @@
 | **磁碟空間** | 保留至少 **10 GB** 供 VEN 使用 |
 | **時間同步** | Windows Time Service (W32tm) 必須正常運作 |
 | **網路連線** | 能連至 PCE：本地部署 TCP **8443**（REST API）+ **8444**（長連線）；SaaS 部署 TCP **443** |
-| **TLS 版本** | 最低支援 **TLS 1.2**（Windows Server 2012 R2 以上預設啟用） |
+| **TLS 版本** | 最低支援 **TLS 1.2**（Windows Server 2016+ / Windows 10 1607+ 在 Schannel 預設啟用；舊版需手動開啟或由配對腳本以 `[Enum]::ToObject([SecurityProtocolType], 3072)` 強制指定） |
 | **執行權限** | 安裝需以 **系統管理員** 身分執行 |
 
-> **注意**：若路徑上有 TLS 攔截裝置（MITM），請針對 VEN ↔ PCE 流量**關閉 TLS 檢查**，否則憑證鏈不完整將導致連線失敗。
+> **TLS 攔截注意**：若路徑上有 TLS 攔截裝置（MITM），請針對 VEN ↔ PCE 流量**關閉 TLS 檢查**，否則憑證鏈不完整將導致連線失敗。
+>
+> **SecureConnect 注意**：若日後啟用 Illumio SecureConnect (VEN 之間 IPsec 加密)，需額外開放 **UDP 500** 與 **UDP 4500**（IKE/NAT-T）。
 
 ---
 
@@ -80,10 +82,10 @@ Remove-Item -Path $tempCertPath
 
 ```powershell
 # 預設路徑
-.\25.2.20-2018_illumio-ven-25.2.20-2018.win.x64.exe /install /quiet /norestart
+.\25.2.20-2018_illumio-ven-25.2.20-2018.win.x64.exe /install /quiet /norestart /log "%TEMP%\IllumioVENInstall.log"
 
-# 自訂路徑
-.\25.2.20-2018_illumio-ven-25.2.20-2018.win.x64.exe /install /quiet /norestart INSTALLDIR="D:\Illumio" DATDIR="D:\Illumio_Data"
+# 自訂路徑（注意：屬性名稱為 INSTALLFOLDER / DATAFOLDER，非 INSTALLDIR / DATDIR）
+.\25.2.20-2018_illumio-ven-25.2.20-2018.win.x64.exe /install /quiet /norestart /log "%TEMP%\IllumioVENInstall.log" INSTALLFOLDER="D:\Illumio" DATAFOLDER="D:\Illumio_Data"
 ```
 
 ### 步驟三：啟用 (手動回報)

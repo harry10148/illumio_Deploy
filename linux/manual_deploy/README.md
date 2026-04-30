@@ -15,7 +15,9 @@
 | **TLS 版本** | 最低支援 **TLS 1.2** |
 | **憑證信任** | 需匯入 PCE 根 CA 憑證，確保 VEN 可驗證 PCE 的憑證信任鏈 |
 
-> **注意**：若路徑上有 TLS 攔截裝置（MITM），請針對 VEN ↔ PCE 流量**關閉 TLS 檢查**，否則憑證鏈不完整將導致連線失敗。
+> **TLS 攔截注意**：若路徑上有 TLS 攔截裝置（MITM），請針對 VEN ↔ PCE 流量**關閉 TLS 檢查**，否則憑證鏈不完整將導致連線失敗。
+>
+> **SecureConnect 注意**：若日後啟用 Illumio SecureConnect (VEN 之間 IPsec 加密)，需額外開放 **UDP 500** 與 **UDP 4500**（IKE/NAT-T）。
 
 ---
 

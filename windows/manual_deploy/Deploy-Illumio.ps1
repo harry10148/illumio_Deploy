@@ -127,10 +127,11 @@ try {
     }
 
     $defaultDir = "C:\Program Files\Illumio"
+    $installerLog = "$env:TEMP\IllumioVENInstall.log"
     if ($InstallDir -eq $defaultDir) {
-        $args = @("/install", "/quiet", "/norestart")
+        $args = @("/install", "/quiet", "/norestart", "/log", "`"$installerLog`"")
     } else {
-        $args = @("/install", "/quiet", "/norestart", "INSTALLDIR=`"$InstallDir`"", "DATDIR=`"$DataDir`"")
+        $args = @("/install", "/quiet", "/norestart", "/log", "`"$installerLog`"", "INSTALLFOLDER=`"$InstallDir`"", "DATAFOLDER=`"$DataDir`"")
     }
 
     Write-Log "INFO" "安裝檔: $InstallerPath"
