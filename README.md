@@ -94,7 +94,12 @@ aix/
 1. 取得 PCE 簽發的 **CA 憑證** (`illumio-ca.crt`)。
 2. 取得一組有效的 **Activation Code** 與您的 **PCE FQDN:PORT** (例如 `pce.example.com:8443`)。
 3. 依平台進入對應目錄，參閱 `README.md` 操作手冊。
-4. **重要**：使用前，請打開您要使用的腳本 (`.ps1`, `.sh`, `.bat`)，將其中的憑證內容 (`-----BEGIN CERTIFICATE-----...`) 替換為您的環境憑證，並將 `<YOUR_ACTIVATION_CODE>` 取代為實際值。所有腳本都搭載了**動態指紋檢查技術**，替換憑證內容後會自動比對新指紋，無需手動設定 Thumbprint。
+4. **憑證提供方式（兩種擇一）**：
+   - **建議**：直接將 `illumio-ca.crt` 放在腳本同目錄，腳本會自動載入（無需修改腳本內容）。
+   - 替代：打開腳本 (`.ps1`, `.sh`, `.bat`)，將其中的憑證內容 (`-----BEGIN CERTIFICATE-----...`) 替換為您的環境憑證。
+5. 設定 Activation Code 與 PCE 位址：將 `<YOUR_ACTIVATION_CODE>` 與 `<YOUR_PCE_FQDN:PORT>` 取代為實際值（PowerShell 也可用參數傳入）。
+
+> 所有腳本都內建**自動防重複匯入**機制：Linux 比對憑證內容，Windows 比對 SHA1 Thumbprint。替換憑證後重複執行腳本不會產生重複信任根。
 
 ---
 
@@ -196,4 +201,9 @@ Before deploying, ensure each target host meets the following requirements:
 1. Obtain the **CA Certificate** (`illumio-ca.crt`) issued by your PCE.
 2. Obtain a valid **Activation Code** and your **PCE FQDN:PORT** (e.g., `pce.example.com:8443`).
 3. Navigate to the directory for your platform and consult the `README.md` manual.
-4. **IMPORTANT**: Before using any script (`.ps1`, `.sh`, `.bat`), open it in a text editor and replace the embedded certificate content (`-----BEGIN CERTIFICATE-----...`) with your environment's certificate. Also replace `<YOUR_ACTIVATION_CODE>` and management server placeholders with actual values. All scripts are equipped with **Dynamic Fingerprint Validation** — no manual Thumbprint configuration required.
+4. **Certificate provisioning (choose one)**:
+   - **Recommended**: Drop `illumio-ca.crt` into the same folder as the script — it will be picked up automatically (no script edits needed).
+   - Alternative: Open the script (`.ps1`, `.sh`, `.bat`) in a text editor and replace the embedded certificate content (`-----BEGIN CERTIFICATE-----...`).
+5. Replace `<YOUR_ACTIVATION_CODE>` and `<YOUR_PCE_FQDN:PORT>` placeholders with actual values (PowerShell also accepts these as parameters).
+
+> All scripts include built-in **duplicate-import prevention**: Linux compares certificate file contents, Windows compares the SHA1 Thumbprint. Re-running scripts with a new certificate will not create duplicate trust anchors.

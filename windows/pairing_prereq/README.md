@@ -21,10 +21,19 @@
 2. 執行：
 
 ```powershell
+# 使用內嵌或同目錄 illumio-ca.crt
 PowerShell.exe -ExecutionPolicy Bypass -File Import-RootCA.ps1
+
+# 指定外部憑證檔案
+PowerShell.exe -ExecutionPolicy Bypass -File Import-RootCA.ps1 -CertFile "C:\certs\illumio-ca.crt"
 ```
 
-> 腳本會自動檢查憑證是否已匯入，若已存在則跳過。
+> **憑證來源優先序**：
+> 1. `-CertFile` 參數指定的檔案（最高優先）
+> 2. 腳本同目錄下的 `illumio-ca.crt`
+> 3. 腳本內嵌憑證（編輯 `Import-RootCA.ps1` 中 `$EmbeddedCertContent`）
+
+> 腳本會以 Thumbprint 比對檢查憑證是否已匯入，若已存在則跳過。
 
 ### 方法 B：手動以 PowerShell 匯入
 

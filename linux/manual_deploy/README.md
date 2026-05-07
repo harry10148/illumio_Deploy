@@ -38,7 +38,14 @@ sudo bash deploy-illumio.sh
 > **執行前請先編輯 `deploy-illumio.sh` 並修改以下變數**：
 > - `ACTIVATION_CODE`: 您的 Activation Code
 > - `MANAGEMENT_SERVER`: PCE 管理節點與 Port，例如 `pce.example.com:8443`
-> - `SOURCE_DIR`: (選填) `.rpm` 或 `.deb` 安裝包所在的目錄。若留空，則會自動在腳本相同的目錄下尋找安裝包。
+> - `SOURCE_DIR`: (選填) `.rpm` 或 `.deb` 安裝包所在的目錄。留空則自動在腳本同目錄尋找。
+> - `VEN_RPM_FILE` / `VEN_DEB_FILE`: (選填) 指定特定安裝包檔名。留空則自動偵測 `SOURCE_DIR` 內第一個 `.rpm` / `.deb`。
+
+> **憑證來源優先序**：
+> 1. 同目錄下的 `illumio-ca.crt` 檔（**建議**，無需修改腳本）
+> 2. 腳本內嵌憑證（編輯 `deploy-illumio.sh` 中 `CERT_EOF` 區塊）
+
+> **重複執行**：若已偵測到 VEN 套件已安裝（`rpm -q illumio-ven` / `dpkg -l illumio-ven`），會自動跳過安裝步驟，直接執行啟用，可重複執行用於更新啟用設定。
 
 ---
 

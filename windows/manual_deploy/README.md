@@ -38,6 +38,10 @@
 2. 將所有產出日誌寫入至 `%TEMP%\IllumioDeploy.log` (方便 SCCM SYSTEM 帳戶除錯)
 3. 確實返回 Exit Code 以利 SCCM 判斷安裝成功或失敗
 
+> **憑證來源優先序**（兩支腳本一致）：
+> 1. 腳本同目錄下的 `illumio-ca.crt` 檔（**建議**，無需修改腳本）
+> 2. 腳本內嵌憑證（編輯 `Deploy-Illumio.ps1` 中 `$EmbeddedCertContent` 或 `deploy-illumio.bat` 中 `echo` 區塊）
+
 ### PowerShell 版
 
 ```powershell
@@ -51,7 +55,7 @@ PowerShell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -WindowStyle H
 ### Batch 版
 
 1. 用文字編輯器打開 `deploy-illumio.bat`
-2. 修改設定區的變數：`EXE_FILE`、`SOURCE_DIR` (可選，留空則為同目錄)、`ACTIVATION_CODE`、`MANAGEMENT_SERVER`、`INSTALL_DIR`
+2. 修改設定區的變數：`EXE_FILE` (可選，留空則自動偵測 `SOURCE_DIR` 內第一個 `.exe`)、`SOURCE_DIR` (可選，留空則為腳本同目錄)、`ACTIVATION_CODE`、`MANAGEMENT_SERVER`、`INSTALL_DIR`、`DATA_DIR`
 3. SCCM 執行指令直接設定為：
 ```cmd
 cmd.exe /c deploy-illumio.bat
@@ -124,7 +128,7 @@ Get-Service -Name "IllumioVEN" -ErrorAction SilentlyContinue
 | `InstallDir` | VEN 安裝目錄 (選填)，預設 `C:\Program Files\Illumio` |
 | `DataDir` | VEN 資料儲存目錄 (選填)，預設 `C:\ProgramData\Illumio` |
 | `SourceDir` | VEN 安裝檔 `.exe` 所在目錄 (選填)，預設自動帶入腳本所在位置 |
-| `ExeFile` | 安裝檔名 (選填)，預設 `25.2.20-2018_illumio-ven-25.2.20-2018.win.x64.exe` |
+| `ExeFile` | 安裝檔名 (選填)，留空則自動偵測 `SourceDir` 中第一個 `.exe` |
 
 ---
 

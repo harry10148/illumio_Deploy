@@ -116,8 +116,13 @@ lslpp -L | grep -i illumio
 
 ```bash
 cd /opt/illumio_ven
-perl -pi -e "s/{pce_fqdn_value}/<PCE_FQDN>/g" runtime_env.yml
-perl -pi -e "s/{pce_port_value}/8443/g" runtime_env.yml
+# AIX 預設可能沒有 perl，優先使用 sed -i (GNU sed) 或 ed
+sed -i "s/{pce_fqdn_value}/<PCE_FQDN>/g" runtime_env.yml
+sed -i "s/{pce_port_value}/8443/g" runtime_env.yml
+
+# 若 AIX sed 不支援 -i，可改用以下方式：
+#   sed "s/{pce_fqdn_value}/<PCE_FQDN>/g; s/{pce_port_value}/8443/g" runtime_env.yml > runtime_env.yml.new \
+#       && mv runtime_env.yml.new runtime_env.yml
 
 ./illumio-ven-ctl activate \
     --activation-code <ACTIVATION_CODE> \
@@ -132,7 +137,7 @@ perl -pi -e "s/{pce_port_value}/8443/g" runtime_env.yml
 |------|---------|
 | openssl 驗證失敗 | 確認 ca-bundle.crt 包含完整憑證鏈 |
 | installp 報錯 | 確認映像檔在當前目錄，已執行 `inutoc .` |
-| perl 不存在 | 改用 `sed -i "s/{pce_fqdn_value}/<PCE>/g" runtime_env.yml` |
+| AIX 內建 sed 不支援 `-i` | 改用 `sed "..." file > file.new && mv file.new file` 模式（見步驟五方法 B 註解） |
 | 啟用失敗 | 檢查 `/opt/illumio_ven/log/` 日誌 + TLS 測試 |
 
 ---

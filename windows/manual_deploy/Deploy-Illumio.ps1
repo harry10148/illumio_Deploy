@@ -129,13 +129,13 @@ try {
     $defaultDir = "C:\Program Files\Illumio"
     $installerLog = "$env:TEMP\IllumioVENInstall.log"
     if ($InstallDir -eq $defaultDir) {
-        $args = @("/install", "/quiet", "/norestart", "/log", "`"$installerLog`"")
+        $installArgs = @("/install", "/quiet", "/norestart", "/log", "`"$installerLog`"")
     } else {
-        $args = @("/install", "/quiet", "/norestart", "/log", "`"$installerLog`"", "INSTALLFOLDER=`"$InstallDir`"", "DATAFOLDER=`"$DataDir`"")
+        $installArgs = @("/install", "/quiet", "/norestart", "/log", "`"$installerLog`"", "INSTALLFOLDER=`"$InstallDir`"", "DATAFOLDER=`"$DataDir`"")
     }
 
     Write-Log "INFO" "安裝檔: $InstallerPath"
-    $proc = Start-Process -FilePath $InstallerPath -ArgumentList $args -Wait -PassThru
+    $proc = Start-Process -FilePath $InstallerPath -ArgumentList $installArgs -Wait -PassThru
     if ($proc.ExitCode -ne 0) { Throw "安裝失敗。Exit Code: $($proc.ExitCode)" }
     Write-Log "OK" "VEN Agent 安裝完成。"
 
@@ -152,6 +152,7 @@ try {
     }
 
     & $TargetCtl activate -activation-code $ActivationCode -management-server $ManagementServer
+    if ($LASTEXITCODE -ne 0) { Throw "啟用失敗。Exit Code: $LASTEXITCODE。請檢查網路、憑證與 Activation Code。" }
     Write-Log "OK" "啟用指令已送出。"
 
     Write-Log "OK" ""

@@ -121,7 +121,7 @@ else
     mkdir -p "$CERT_DIR"
     echo "$CERT_CONTENT" > "$CERT_FILE"
     chmod 644 "$CERT_FILE"
-    eval $UPDATE_CMD
+    eval "$UPDATE_CMD"
     print_ok "憑證匯入成功。"
 fi
 
@@ -172,7 +172,7 @@ if [ "$ACTIVATION_CODE" = "<YOUR_ACTIVATION_CODE>" ] || [ "$MANAGEMENT_SERVER" =
 fi
 
 print_info "Server: $MANAGEMENT_SERVER"
-sudo "$VEN_CTL" activate --management-server "$MANAGEMENT_SERVER" --activation-code "$ACTIVATION_CODE"
+"$VEN_CTL" activate --management-server "$MANAGEMENT_SERVER" --activation-code "$ACTIVATION_CODE"
 print_ok "啟用指令已送出。"
 
 print_header "部署完成"

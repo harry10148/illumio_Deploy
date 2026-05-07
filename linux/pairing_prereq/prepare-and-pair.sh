@@ -172,7 +172,7 @@ if [ -f "$CERT_FILE" ]; then
         print_info "憑證檔案內容不同，更新中..."
         echo "$CERT_CONTENT" > "$CERT_FILE"
         chmod 644 "$CERT_FILE"
-        eval $UPDATE_CMD
+        eval "$UPDATE_CMD"
         print_ok "憑證已更新。"
     fi
 else
@@ -180,7 +180,7 @@ else
     mkdir -p "$CERT_DIR"
     echo "$CERT_CONTENT" > "$CERT_FILE"
     chmod 644 "$CERT_FILE"
-    eval $UPDATE_CMD
+    eval "$UPDATE_CMD"
     print_ok "憑證匯入成功。"
 fi
 
